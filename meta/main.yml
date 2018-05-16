@@ -1,0 +1,6 @@
+---
+galaxy_info:
+  author: Rafael Pacheco
+  description: A simple ansible playbook to install dgraph
+
+dependencies: []
