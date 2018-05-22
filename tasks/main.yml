@@ -10,9 +10,23 @@
   shell: "/tmp/get-dgraph.sh"
   become: yes
 
+# Igual no funciona pero da más info con respecto a lo que pasa adentro.
+#- name: Run Zero
+#  shell: "/vagrant_data/zero.sh"
+#  become: ubuntu
+
+# Funciona si corres este y luego matas la provision.
+# Intente detener este proceso con un timeout pero no tiene el mismo efecto.
+#- name: Run dgraph-zero
+#  shell: dgraph zero
+#  become: yes
+#  ignore_errors: yes
+
+# Despues de eso este funciona, creo que tiene que ver con la configuración de ansible.
 - name: Run Dgraph Zero
-  shell: "nohup dgraph zero --bindall=true --idx 1 -w wz  > /vagrant_data/dgraph-zero.log &"
+  shell: "nohup dgraph zero --my=localhost:5080  > /vagrant_data/dgraph-zero.log &"
   become: yes
+  ignore_errors: yes
 
 - name: Wait 60 seconds for port 5080 to become open on the host, don't start checking for 10 seconds
   wait_for:
@@ -20,8 +34,9 @@
     delay: 10
     timeout: 60
 
+# El server falla ya que no encuentra zero. Si zero corre todo funciona bien
 - name: Run Dgraph Server
-  shell: "nohup dgraph server --lru_mb 1024 > /vagrant_data/dgraph-server.log &"
+  shell: "nohup dgraph server --my=localhost:7080 --lru_mb=2048 --zero=localhost:5080 > /vagrant_data/dgraph-server.log &"
   become: yes
 
 - name: Run Dgraph Ratel
