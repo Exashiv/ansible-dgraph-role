@@ -1,50 +1,45 @@
 ---
-- name: Download Dgraph Installation Script 
+# Downloads
+- name: Download Dgraph Installation Script
   get_url:
     url: "https://get.dgraph.io"
     dest: /tmp/get-dgraph.sh
     mode: 0755
-  become: yes
 
+# Runs the previously downloaded script
 - name: Install Dgraph
   shell: "/tmp/get-dgraph.sh"
   become: yes
 
-# Igual no funciona pero da más info con respecto a lo que pasa adentro.
-#- name: Run Zero
-#  shell: "/vagrant_data/zero.sh"
-#  become: ubuntu
-
-# Funciona si corres este y luego matas la provision.
-# Intente detener este proceso con un timeout pero no tiene el mismo efecto.
-#- name: Run dgraph-zero
-#  shell: dgraph zero
-#  become: yes
-#  ignore_errors: yes
-
-# Despues de eso este funciona, creo que tiene que ver con la configuración de ansible.
+# Starts a Dgraph Zero instance
 - name: Run Dgraph Zero
-  shell: "nohup dgraph zero --my=localhost:5080  > /vagrant_data/dgraph-zero.log &"
-  become: yes
-  ignore_errors: yes
+  shell: 'nohup {{ dgraph_zero_command }} >> {{ dgraph_zero_log_path }} 2>&1&'
 
-- name: Wait 60 seconds for port 5080 to become open on the host, don't start checking for 10 seconds
+# Verifies that Dgraph Zero is listening to requests
+- name: Check Dgraph Zero success
   wait_for:
     port: 5080
-    delay: 10
-    timeout: 60
+    delay: {{ service_verification_delay }}
+    timeout: {{ service_verification_timeout }}
 
-# El server falla ya que no encuentra zero. Si zero corre todo funciona bien
+# Starts a Dgraph Server instance
 - name: Run Dgraph Server
-  shell: "nohup dgraph server --my=localhost:7080 --lru_mb=2048 --zero=localhost:5080 > /vagrant_data/dgraph-server.log &"
-  become: yes
+  shell: 'nohup {{ dgraph_server_command }} >> {{ dgraph_server_log_path }} 2>&1&'
 
+# Verifies that Dgraph Server is listening to requests
+- name: Check Dgraph Server success
+  wait_for:
+    port: 8080
+    delay: {{ service_verification_delay }}
+    timeout: {{ service_verification_timeout }}
+
+#  Starts a Dgraph Ratel instance
 - name: Run Dgraph Ratel
-  shell: "nohup dgraph-ratel > /vagrant_data/dgraph-ratel.log &"
-  become: yes
+  shell: "nohup {{ dgraph_ratel_command }} >> {{ dgraph_ratel_log_path }} 2>&1&"
 
+# Verifies that Dgraph Ratel is listening to requests
 - name: Wait 60 seconds for port 8000 to become open on the host, don't start checking for 10 seconds
-  wait_for: 
+  wait_for:
     port: 8000
-    delay: 10
-    timeout: 60
+    delay: {{ service_verification_delay }}
+    timeout: {{ service_verification_timeout }}
