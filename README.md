@@ -1,2 +1,10 @@
 # ansible-dgraph-role
-A simple ansible role to install dgraph
+## An ansible role to install dgraph
+
+### Variables
+
+
+### Future work:
+
+
+
