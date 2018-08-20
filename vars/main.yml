@@ -1,0 +1,7 @@
+---
+# This is how long it will give the process to start before checking if its up
+# Unit: seconds
+service_verification_delay: 10
+# This is for how long it will check if the port is open
+# Unit: seconds
+service_verification_timeout: 60
